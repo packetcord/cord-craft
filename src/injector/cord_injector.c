@@ -5,15 +5,15 @@
 #include <injector/cord_injector.h>
 #include <cord_retval.h>
 
-static cord_retval_t CordInjector_transmit_(CordInjector const * const self, void *buffer, size_t len, ssize_t *transmit_bytes)
+static cord_retval_t CordInjector_tx_(CordInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes)
 {
 #ifdef CORD_INJECTOR_LOG
-    CORD_LOG("[CordInjector] transmit()\n");
+    CORD_LOG("[CordInjector] tx()\n");
 #endif
     (void)self;
     (void)buffer;
     (void)len;
-    (void)transmit_bytes;
+    (void)tx_bytes;
     return CORD_OK;
 }
 
@@ -23,7 +23,7 @@ void CordInjector_ctor(CordInjector * const self, uint8_t id)
     CORD_LOG("[CordInjector] ctor()\n");
 #endif
     static const CordInjectorVtbl vtbl = {
-        .transmit = CordInjector_transmit_,
+        .tx = CordInjector_tx_,
     };
 
     self->vptr = &vtbl;

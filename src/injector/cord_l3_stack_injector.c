@@ -1,13 +1,13 @@
 #include <injector/cord_l3_stack_injector.h>
 #include <cord_error.h>
 
-static cord_retval_t CordL3StackInjector_transmit_(CordL3StackInjector const * const self, void *buffer, size_t len, ssize_t *transmit_bytes)
+static cord_retval_t CordL3StackInjector_tx_(CordL3StackInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes)
 {
 #ifdef CORD_FLOW_POINT_LOG
-    CORD_LOG("[CordL3StackInjector] transmit()\n");
+    CORD_LOG("[CordL3StackInjector] tx()\n");
 #endif
-    *transmit_bytes = sendto(self->base.io_handle, buffer, len, 0, (struct sockaddr *)&(self->dst_addr_in), sizeof(self->dst_addr_in));
-    if (*transmit_bytes < 0)
+    *tx_bytes = sendto(self->base.io_handle, buffer, len, 0, (struct sockaddr *)&(self->dst_addr_in), sizeof(self->dst_addr_in));
+    if (*tx_bytes < 0)
     {
         CORD_ERROR("[CordL3StackInjector] sendto()");
     }
@@ -38,7 +38,7 @@ void CordL3StackInjector_ctor(CordL3StackInjector * const self,
     CORD_LOG("[CordL3StackInjector] ctor()\n");
 #endif
     static const CordInjectorVtbl vtbl_base = {
-        .transmit = (cord_retval_t (*)(CordInjector const * const self, void *buffer, size_t len, ssize_t *transmit_bytes))&CordL3StackInjector_transmit_,
+        .tx = (cord_retval_t (*)(CordInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes))&CordL3StackInjector_tx_,
     };
 
     static const CordL3StackInjectorVtbl vtbl_deriv = {

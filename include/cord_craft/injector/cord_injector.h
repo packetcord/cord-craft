@@ -31,7 +31,7 @@ typedef struct CordInjector CordInjector;
 
 typedef struct
 {
-    cord_retval_t (*transmit)(CordInjector const * const self, void *buffer, size_t len, ssize_t *transmit_bytes);
+    cord_retval_t (*tx)(CordInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes);
 } CordInjectorVtbl;
 
 struct CordInjector
@@ -41,14 +41,14 @@ struct CordInjector
     int io_handle;
 };
 
-static inline cord_retval_t CordInjector_transmit_vcall(CordInjector const * const self, void *buffer, size_t len, ssize_t *transmit_bytes)
+static inline cord_retval_t CordInjector_tx_vcall(CordInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes)
 {
-    return (*(self->vptr->transmit))(self, buffer, len, transmit_bytes);
+    return (*(self->vptr->tx))(self, buffer, len, tx_bytes);
 }
 
-#define CORD_INJECTOR_TRANSMIT_VCALL(self, buffer, len, transmit_bytes)   (*(self->vptr->transmit))((self), (buffer), (len), (transmit_bytes))
+#define CORD_INJECTOR_TX_VCALL(self, buffer, len, tx_bytes)   (*(self->vptr->tx))((self), (buffer), (len), (tx_bytes))
 
-#define CORD_INJECTOR_TRANSMIT CORD_INJECTOR_TRANSMIT_VCALL
+#define CORD_INJECTOR_TX CORD_INJECTOR_TX_VCALL
 
 void CordInjector_ctor(CordInjector * const self, uint8_t id);
 void CordInjector_dtor(CordInjector * const self);
