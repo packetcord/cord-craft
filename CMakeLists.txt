@@ -16,8 +16,8 @@ add_library(cord_craft STATIC ${SOURCES})
 # ---------------------------------------------------------------------
 target_include_directories(cord_craft
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/cord_craft>
-        $<INSTALL_INTERFACE:include/cord_craft>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
 # ---------------------------------------------------------------------
