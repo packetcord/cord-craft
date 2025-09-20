@@ -3,7 +3,7 @@
 
 static cord_retval_t CordL3StackInjector_tx_(CordL3StackInjector const * const self, void *buffer, size_t len, ssize_t *tx_bytes)
 {
-#ifdef CORD_FLOW_POINT_LOG
+#ifdef CORD_INJECTOR_LOG
     CORD_LOG("[CordL3StackInjector] tx()\n");
 #endif
     *tx_bytes = sendto(self->base.io_handle, buffer, len, 0, (struct sockaddr *)&(self->dst_addr_in), sizeof(self->dst_addr_in));
@@ -17,7 +17,7 @@ static cord_retval_t CordL3StackInjector_tx_(CordL3StackInjector const * const s
 
 void CordL3StackInjector_set_target_ipv4_(CordL3StackInjector * const self, in_addr_t ipv4_addr)
 {
-#ifdef CORD_FLOW_POINT_LOG
+#ifdef CORD_INJECTOR_LOG
     CORD_LOG("[CordL3StackInjector] set_target_ipv4()\n");
 #endif
     self->dst_addr_in.sin_addr.s_addr = ipv4_addr;
@@ -25,7 +25,7 @@ void CordL3StackInjector_set_target_ipv4_(CordL3StackInjector * const self, in_a
 
 void CordL3StackInjector_set_target_ipv6_(CordL3StackInjector * const self, struct in6_addr ipv6_addr)
 {
-#ifdef CORD_FLOW_POINT_LOG
+#ifdef CORD_INJECTOR_LOG
     CORD_LOG("[CordL3StackInjector] set_target_ipv6()\n");
 #endif
     self->dst_addr_in6.sin6_addr = ipv6_addr;
@@ -34,7 +34,7 @@ void CordL3StackInjector_set_target_ipv6_(CordL3StackInjector * const self, stru
 void CordL3StackInjector_ctor(CordL3StackInjector * const self,
                                      uint8_t id)
 {
-#ifdef CORD_FLOW_POINT_LOG
+#ifdef CORD_INJECTOR_LOG
     CORD_LOG("[CordL3StackInjector] ctor()\n");
 #endif
     static const CordInjectorVtbl vtbl_base = {
@@ -75,7 +75,7 @@ void CordL3StackInjector_ctor(CordL3StackInjector * const self,
 
 void CordL3StackInjector_dtor(CordL3StackInjector * const self)
 {
-#ifdef CORD_FLOW_POINT_LOG
+#ifdef CORD_INJECTOR_LOG
     CORD_LOG("[CordL3StackInjector] dtor()\n");
 #endif
     close(self->base.io_handle);
