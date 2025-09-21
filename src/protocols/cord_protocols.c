@@ -2024,7 +2024,23 @@ uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr)
 // IPv4 checksum validation
 bool cord_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr)
 {
-    return cord_ipv4_checksum(ip_hdr) == 0;
+    uint32_t sum = 0;
+    const uint8_t *ptr = (const uint8_t*)ip_hdr;
+    uint8_t ihl = ip_hdr->ihl * 4; // Header length in bytes
+    
+    // Sum all 16-bit words including checksum field
+    for (uint8_t i = 0; i < ihl; i += 2) {
+        uint16_t word = (ptr[i] << 8) | ptr[i + 1];
+        sum += word;
+    }
+    
+    // Add carry bits and take one's complement
+    while (sum >> 16) {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
+    
+    // For a valid checksum, the result should be 0
+    return (~sum) == 0;
 }
 
 // IPv4 payload length calculation
@@ -2042,36 +2058,46 @@ uint16_t cord_ipv6_payload_length(const cord_ipv6_hdr_t *ip6_hdr)
 }
 
 // TCP checksum calculation for IPv4
-uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr, 
-                                const cord_tcp_hdr_t *tcp_hdr)
+uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
+    // Verify this is a TCP packet
+    if (ip_hdr->protocol != CORD_IPPROTO_TCP) {
+        return 0; // Invalid protocol
+    }
+    
+    // Calculate IP header length and find TCP header
+    uint8_t ip_hdr_len = ip_hdr->ihl * 4;
+    const cord_tcp_hdr_t *tcp_hdr = (const cord_tcp_hdr_t*)((const uint8_t*)ip_hdr + ip_hdr_len);
+    
     uint32_t sum = 0;
     uint16_t tcp_len = cord_ipv4_payload_length(ip_hdr);
     
-    // Pseudo header: src addr + dst addr + protocol + length
-    sum += (cord_ntohl(ip_hdr->saddr.addr) >> 16) + (cord_ntohl(ip_hdr->saddr.addr) & 0xFFFF);
-    sum += (cord_ntohl(ip_hdr->daddr.addr) >> 16) + (cord_ntohl(ip_hdr->daddr.addr) & 0xFFFF);
-    sum += cord_htons(CORD_IPPROTO_TCP);
-    sum += cord_htons(tcp_len);
+    // Pseudo header: src addr + dst addr + zero + protocol + length
+    // Source address (network byte order, split into 16-bit words)
+    sum += cord_ntohs((ip_hdr->saddr.addr >> 16) & 0xFFFF);
+    sum += cord_ntohs(ip_hdr->saddr.addr & 0xFFFF);
+    // Destination address (network byte order, split into 16-bit words)
+    sum += cord_ntohs((ip_hdr->daddr.addr >> 16) & 0xFFFF);
+    sum += cord_ntohs(ip_hdr->daddr.addr & 0xFFFF);
+    // Zero byte + protocol (6 for TCP) - in network byte order
+    sum += CORD_IPPROTO_TCP;
+    // TCP length
+    sum += tcp_len;
     
     // TCP header and data
     const uint8_t *ptr = (const uint8_t*)tcp_hdr;
-    uint16_t orig_check = tcp_hdr->check;
     
-    // Sum all 16-bit words (skip checksum field at offset 16-17)
-    for (uint16_t i = 0; i < tcp_len; i += 2) {
-        if (i == 16) continue; // Skip checksum field
-        if (i + 1 < tcp_len) {
-            uint16_t word = (ptr[i] << 8) | ptr[i + 1];
-            sum += word;
-        } else {
-            // Handle odd byte at end
-            sum += ptr[i] << 8;
-        }
+    // Sum all 16-bit words, skipping checksum field at offset 16-17
+    for (uint16_t i = 0; i < tcp_len / 2; i++) {
+        if (i == 8) continue; // Skip checksum field (offset 16-17 = word 8)
+        uint16_t word = (ptr[i*2] << 8) | ptr[i*2 + 1];
+        sum += word;
     }
     
-    // Restore original checksum
-    *((uint16_t*)&tcp_hdr->check) = orig_check;
+    // Handle odd byte
+    if (tcp_len & 1) {
+        sum += ptr[tcp_len - 1] << 8;
+    }
     
     // Add carry bits and take one's complement
     while (sum >> 16) {
@@ -2082,36 +2108,46 @@ uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr,
 }
 
 // UDP checksum calculation for IPv4
-uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr, 
-                                const cord_udp_hdr_t *udp_hdr)
+uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
+    // Verify this is a UDP packet
+    if (ip_hdr->protocol != CORD_IPPROTO_UDP) {
+        return 0; // Invalid protocol
+    }
+    
+    // Calculate IP header length and find UDP header
+    uint8_t ip_hdr_len = ip_hdr->ihl * 4;
+    const cord_udp_hdr_t *udp_hdr = (const cord_udp_hdr_t*)((const uint8_t*)ip_hdr + ip_hdr_len);
+    
     uint32_t sum = 0;
     uint16_t udp_len = cord_ntohs(udp_hdr->len);
     
-    // Pseudo header: src addr + dst addr + protocol + length
-    sum += (cord_ntohl(ip_hdr->saddr.addr) >> 16) + (cord_ntohl(ip_hdr->saddr.addr) & 0xFFFF);
-    sum += (cord_ntohl(ip_hdr->daddr.addr) >> 16) + (cord_ntohl(ip_hdr->daddr.addr) & 0xFFFF);
-    sum += cord_htons(CORD_IPPROTO_UDP);
-    sum += cord_htons(udp_len);
+    // Pseudo header: src addr + dst addr + zero + protocol + length
+    // Source address (network byte order, split into 16-bit words)
+    sum += cord_ntohs((ip_hdr->saddr.addr >> 16) & 0xFFFF);
+    sum += cord_ntohs(ip_hdr->saddr.addr & 0xFFFF);
+    // Destination address (network byte order, split into 16-bit words)
+    sum += cord_ntohs((ip_hdr->daddr.addr >> 16) & 0xFFFF);
+    sum += cord_ntohs(ip_hdr->daddr.addr & 0xFFFF);
+    // Zero byte + protocol (17 for UDP) - in network byte order
+    sum += CORD_IPPROTO_UDP;
+    // UDP length - already converted to host byte order above
+    sum += udp_len;
     
     // UDP header and data
     const uint8_t *ptr = (const uint8_t*)udp_hdr;
-    uint16_t orig_check = udp_hdr->check;
-    *((uint16_t*)&udp_hdr->check) = 0;
     
-    // Sum all 16-bit words
+    // Sum all 16-bit words, skipping checksum field at offset 6-7
     for (uint16_t i = 0; i < udp_len / 2; i++) {
+        if (i == 3) continue; // Skip checksum field (offset 6-7 = word 3)
         uint16_t word = (ptr[i*2] << 8) | ptr[i*2 + 1];
         sum += word;
     }
     
     // Handle odd byte
     if (udp_len & 1) {
-        sum += ((uint8_t*)udp_hdr)[udp_len - 1] << 8;
+        sum += ptr[udp_len - 1] << 8;
     }
-    
-    // Restore original checksum
-    *((uint16_t*)&udp_hdr->check) = orig_check;
     
     // Add carry bits and take one's complement
     while (sum >> 16) {
@@ -2121,29 +2157,36 @@ uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr,
     return ~sum;
 }
 
-// ICMP checksum calculation
-uint16_t cord_icmp_checksum(const cord_icmp_hdr_t *icmp_hdr, uint16_t data_len)
+// ICMP checksum calculation for IPv4
+uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
+    // Verify this is an ICMP packet
+    if (ip_hdr->protocol != CORD_IPPROTO_ICMP) {
+        return 0; // Invalid protocol
+    }
+    
+    // Calculate IP header length and find ICMP header
+    uint8_t ip_hdr_len = ip_hdr->ihl * 4;
+    const cord_icmp_hdr_t *icmp_hdr = (const cord_icmp_hdr_t*)((const uint8_t*)ip_hdr + ip_hdr_len);
+    
+    // Calculate ICMP data length
+    uint16_t total_len = cord_ntohs(ip_hdr->tot_len);
+    uint16_t icmp_len = total_len - ip_hdr_len;
+    
     uint32_t sum = 0;
     const uint8_t *ptr = (const uint8_t*)icmp_hdr;
     
-    // Save original checksum and zero it
-    uint16_t orig_check = icmp_hdr->checksum;
-    *((uint16_t*)&icmp_hdr->checksum) = 0;
-    
-    // Sum all 16-bit words
-    for (uint16_t i = 0; i < data_len / 2; i++) {
+    // Sum all 16-bit words, skipping checksum field at offset 2-3
+    for (uint16_t i = 0; i < icmp_len / 2; i++) {
+        if (i == 1) continue; // Skip checksum field (offset 2-3 = word 1)
         uint16_t word = (ptr[i*2] << 8) | ptr[i*2 + 1];
         sum += word;
     }
     
     // Handle odd byte
-    if (data_len & 1) {
-        sum += ((uint8_t*)icmp_hdr)[data_len - 1] << 8;
+    if (icmp_len & 1) {
+        sum += ptr[icmp_len - 1] << 8;
     }
-    
-    // Restore original checksum
-    *((uint16_t*)&icmp_hdr->checksum) = orig_check;
     
     // Add carry bits and take one's complement
     while (sum >> 16) {
