@@ -2095,13 +2095,14 @@ uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr,
     sum += cord_htons(udp_len);
     
     // UDP header and data
-    uint16_t *ptr = (uint16_t*)udp_hdr;
+    const uint8_t *ptr = (const uint8_t*)udp_hdr;
     uint16_t orig_check = udp_hdr->check;
     *((uint16_t*)&udp_hdr->check) = 0;
     
     // Sum all 16-bit words
     for (uint16_t i = 0; i < udp_len / 2; i++) {
-        sum += cord_ntohs(ptr[i]);
+        uint16_t word = (ptr[i*2] << 8) | ptr[i*2 + 1];
+        sum += word;
     }
     
     // Handle odd byte
@@ -2124,7 +2125,7 @@ uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr,
 uint16_t cord_icmp_checksum(const cord_icmp_hdr_t *icmp_hdr, uint16_t data_len)
 {
     uint32_t sum = 0;
-    uint16_t *ptr = (uint16_t*)icmp_hdr;
+    const uint8_t *ptr = (const uint8_t*)icmp_hdr;
     
     // Save original checksum and zero it
     uint16_t orig_check = icmp_hdr->checksum;
@@ -2132,7 +2133,8 @@ uint16_t cord_icmp_checksum(const cord_icmp_hdr_t *icmp_hdr, uint16_t data_len)
     
     // Sum all 16-bit words
     for (uint16_t i = 0; i < data_len / 2; i++) {
-        sum += cord_ntohs(ptr[i]);
+        uint16_t word = (ptr[i*2] << 8) | ptr[i*2 + 1];
+        sum += word;
     }
     
     // Handle odd byte
