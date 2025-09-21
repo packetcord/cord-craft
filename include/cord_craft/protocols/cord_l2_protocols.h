@@ -1,7 +1,7 @@
 #ifndef CORD_L2_PROTOCOLS_H
 #define CORD_L2_PROTOCOLS_H
 
-#include "cord_protocol_common.h"
+#include "cord_protocols_common.h"
 
 // Ethernet II header
 typedef struct CORD_PACKED cord_eth_hdr {

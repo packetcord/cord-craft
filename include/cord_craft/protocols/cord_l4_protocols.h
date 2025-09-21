@@ -1,7 +1,7 @@
 #ifndef CORD_L4_PROTOCOLS_H
 #define CORD_L4_PROTOCOLS_H
 
-#include "cord_protocol_common.h"
+#include "cord_protocols_common.h"
 
 // TCP header - RFC 793 compliant
 typedef struct CORD_PACKED cord_tcp_hdr {
