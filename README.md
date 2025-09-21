@@ -53,7 +53,33 @@ CORD-CRAFT is currently in the **planning phase**. Development will begin after 
 ```
 cord-craft/
 ├── CMakeLists.txt               # Build configuration
-└── README.md                    # This file
+├── LICENSE                      # MIT License file
+├── README.md                    # This file
+├── build/                       # Build artifacts and CMake cache
+├── include/                     # Header files
+│   └── cord_craft/
+│       ├── cord_error.h         # Error handling definitions
+│       ├── cord_retval.h        # Return value types
+│       ├── cord_type.h          # Core type definitions
+│       ├── injector/            # Packet injection headers
+│       │   ├── cord_injector.h
+│       │   └── cord_l3_stack_injector.h
+│       ├── parser/              # Packet parsing headers (planned)
+│       └── protocols/           # Protocol definitions
+│           ├── cord_l2_protocols.h       # Layer 2 protocols
+│           ├── cord_l3_protocols.h       # Layer 3 protocols
+│           ├── cord_l4_protocols.h       # Layer 4 protocols
+│           ├── cord_protocols.h          # Main protocol header
+│           ├── cord_protocols_common.h   # Common protocol utilities
+│           ├── cord_routing_protocols.h  # Routing protocols
+│           └── cord_tunneling_protocols.h # Tunneling protocols
+└── src/                         # Source files
+    ├── injector/                # Packet injection implementation
+    │   ├── cord_injector.c
+    │   └── cord_l3_stack_injector.c
+    ├── parser/                  # Packet parsing implementation (planned)
+    └── protocols/               # Protocol implementation
+        └── cord_protocols.c
 ```
 
 ---
