@@ -455,11 +455,57 @@ bool cord_match_extract_flow_tuple(const void *buffer, size_t len, cord_flow_tup
 uint32_t cord_match_hash_flow_tuple(const cord_flow_tuple_t *tuple);
 
 // =============================================================================
+// CHECKSUM CALCULATION FUNCTIONS
+// =============================================================================
+
+// IPv4 Checksum Functions
+uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr);
+bool cord_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr);
+
+// Transport Layer Checksum Functions
+uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+
+// =============================================================================
+// PAYLOAD LENGTH UTILITIES
+// =============================================================================
+
+// Payload Length Calculation
+uint16_t cord_ipv4_payload_length(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_ipv6_payload_length(const cord_ipv6_hdr_t *ip6_hdr);
+
+// =============================================================================
 // CROSS-LAYER ADDRESS UTILITIES
 // =============================================================================
 
 // Layer 2 Address Type Detection
 bool cord_mac_is_multicast(const cord_mac_addr_t *mac_addr);
 bool cord_mac_is_broadcast(const cord_mac_addr_t *mac_addr);
+
+// Layer 3 Address Type Detection
+bool cord_ipv4_is_multicast(uint32_t addr);
+bool cord_ipv4_is_broadcast(uint32_t addr);
+
+// =============================================================================
+// STRING CONVERSION UTILITIES
+// =============================================================================
+
+// Address to String Conversion
+char* cord_ipv4_to_string(uint32_t addr, char *buf);
+char* cord_mac_to_string(const cord_mac_addr_t *mac_addr, char *buf);
+
+// =============================================================================
+// PACKET VALIDATION AND UTILITY FUNCTIONS
+// =============================================================================
+
+// Basic Packet Validation
+bool cord_packet_basic_validation(const void *buffer, size_t buf_len);
+
+// VLAN Tag Extraction
+uint8_t cord_extract_vlan_tags(const void *buffer, uint16_t *vlan_tags, uint8_t max_tags);
+
+// Ethernet CRC32 Calculation
+uint32_t cord_ethernet_crc32(const void *buffer, size_t frame_len);
 
 #endif // CORD_PROTOCOLS_H
