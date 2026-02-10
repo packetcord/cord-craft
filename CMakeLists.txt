@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(cord_craft C)
 
 set(CMAKE_C_STANDARD 23)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---------------------------------------------------------------------
 # collect sources and build the static library
