@@ -1,7 +1,7 @@
 #ifndef CORD_TUNNELING_PROTOCOLS_H
 #define CORD_TUNNELING_PROTOCOLS_H
 
-#include "cord_protocols_common.h"
+#include "cord_protocol_common.h"
 
 // GRE (Generic Routing Encapsulation) header
 typedef struct CORD_PACKED cord_gre_hdr {

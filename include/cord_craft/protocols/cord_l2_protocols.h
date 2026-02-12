@@ -1,7 +1,7 @@
 #ifndef CORD_L2_PROTOCOLS_H
 #define CORD_L2_PROTOCOLS_H
 
-#include "cord_protocols_common.h"
+#include "cord_protocol_common.h"
 
 // Ethernet II header
 typedef struct CORD_PACKED cord_eth_hdr {
@@ -131,19 +131,5 @@ typedef struct CORD_PACKED cord_lacp_hdr {
 #define CORD_MPLS_S_MASK        0x00000100
 #define CORD_MPLS_TTL_MASK      0x000000FF
 
-// Helper macros for VLAN
-#define CORD_VLAN_GET_PCP(tci)  (((tci) & CORD_VLAN_PCP_MASK) >> 13)
-#define CORD_VLAN_GET_DEI(tci)  (((tci) & CORD_VLAN_DEI_MASK) >> 12)
-#define CORD_VLAN_GET_VID(tci)  ((tci) & CORD_VLAN_VID_MASK)
-#define CORD_VLAN_SET_TCI(pcp, dei, vid) \
-    (((pcp) << 13) | ((dei) << 12) | ((vid) & CORD_VLAN_VID_MASK))
-
-// Helper macros for MPLS
-#define CORD_MPLS_GET_LABEL(entry) (((entry) & CORD_MPLS_LABEL_MASK) >> 12)
-#define CORD_MPLS_GET_EXP(entry)   (((entry) & CORD_MPLS_EXP_MASK) >> 9)
-#define CORD_MPLS_GET_S(entry)     (((entry) & CORD_MPLS_S_MASK) >> 8)
-#define CORD_MPLS_GET_TTL(entry)   ((entry) & CORD_MPLS_TTL_MASK)
-#define CORD_MPLS_SET_ENTRY(label, exp, s, ttl) \
-    (((label) << 12) | ((exp) << 9) | ((s) << 8) | (ttl))
 
 #endif // CORD_L2_PROTOCOLS_H

@@ -8,504 +8,276 @@
 #include "cord_routing_protocols.h"
 #include "cord_tunneling_protocols.h"
 
-/**
- * @file cord_protocols.h
- * @brief Zero-copy protocol header parsing and matching functions
- * 
- * This module provides high-performance, zero-copy protocol header parsing
- * and field matching functions organized by OSI layers. All functions operate 
- * directly on packet buffers without copying data.
- * 
- * Key principles:
- * - Zero-copy: All functions work with pointers to packet data
- * - Portable: Uses our own protocol header definitions
- * - High-performance: Optimized for packet processing pipelines
- * - Type-safe: Uses proper portable types and byte order handling
- * - OSI Layer Organization: Functions are grouped by protocol layer
- */
 
-// =============================================================================
-// OSI LAYER 2 (DATA LINK) - PROTOCOL HEADER GETTERS
-// =============================================================================
+//
+// From MATCH
+//
+// Layer 2 Protocol Headers
+cord_eth_hdr_t* cord_header_eth(const void *buffer);
+cord_vlan_hdr_t* cord_header_vlan(const cord_eth_hdr_t *eth_hdr);
+cord_mpls_hdr_t* cord_header_mpls(const void *buffer, uint16_t offset);
+cord_arp_hdr_t* cord_header_arp(const cord_eth_hdr_t *eth_hdr);
 
-// Ethernet Protocol Headers
-cord_eth_hdr_t* cord_get_eth_hdr(const void *buffer);
+// Layer 3 Protocol Headers
+cord_ipv4_hdr_t* cord_header_ipv4(const void *buffer);
+cord_ipv4_hdr_t* cord_header_ipv4_from_eth(const cord_eth_hdr_t *eth_hdr);
+cord_ipv6_hdr_t* cord_header_ipv6(const void *buffer);
+cord_ipv6_hdr_t* cord_header_ipv6_from_eth(const cord_eth_hdr_t *eth_hdr);
+cord_icmp_hdr_t* cord_header_icmp(const cord_ipv4_hdr_t *ip_hdr);
+cord_icmpv6_hdr_t* cord_header_icmpv6(const cord_ipv6_hdr_t *ip6_hdr);
 
-// VLAN Protocol Headers  
-cord_vlan_hdr_t* cord_get_vlan_hdr(const cord_eth_hdr_t *eth_hdr);
+// Layer 4 Protocol Headers
+cord_tcp_hdr_t* cord_header_tcp_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+cord_tcp_hdr_t* cord_header_tcp_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
+cord_udp_hdr_t* cord_header_udp_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+cord_udp_hdr_t* cord_header_udp_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
+cord_sctp_hdr_t* cord_header_sctp_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+cord_sctp_hdr_t* cord_header_sctp_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
 
-// MPLS Protocol Headers
-cord_mpls_hdr_t* cord_get_mpls_hdr(const void *buffer, uint16_t offset);
+// Tunneling Protocol Headers
+cord_gre_hdr_t* cord_header_gre(const cord_ipv4_hdr_t *ip_hdr);
+cord_vxlan_hdr_t* cord_header_vxlan(const cord_udp_hdr_t *udp_hdr);
+cord_gtpu_hdr_t* cord_header_gtpu(const cord_udp_hdr_t *udp_hdr);
 
-// ARP Protocol Headers
-cord_arp_hdr_t* cord_get_arp_hdr(const cord_eth_hdr_t *eth_hdr);
+// Routing Protocol Headers
+cord_ospf_hdr_t* cord_header_ospf(const cord_ipv4_hdr_t *ip_hdr);
+cord_ospf_hello_t* cord_header_ospf_hello(const cord_ospf_hdr_t *ospf_hdr);
+cord_ospf_db_desc_t* cord_header_ospf_db_desc(const cord_ospf_hdr_t *ospf_hdr);
+cord_ospf_ls_req_t* cord_header_ospf_ls_req(const cord_ospf_hdr_t *ospf_hdr);
+cord_ospf_ls_upd_t* cord_header_ospf_ls_upd(const cord_ospf_hdr_t *ospf_hdr);
+cord_ospf_ls_ack_t* cord_header_ospf_ls_ack(const cord_ospf_hdr_t *ospf_hdr);
+cord_ospf_lsa_hdr_t* cord_header_ospf_lsa(const void *lsa_data);
+cord_ospf_router_lsa_t* cord_header_ospf_router_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
+cord_ospf_network_lsa_t* cord_header_ospf_network_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
+cord_ospf_summary_lsa_t* cord_header_ospf_summary_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
+cord_ospf_external_lsa_t* cord_header_ospf_external_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
+cord_ospf_nssa_lsa_t* cord_header_ospf_nssa_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
+cord_ospf_opaque_lsa_t* cord_header_ospf_opaque_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
 
-// =============================================================================
-// OSI LAYER 3 (NETWORK) - PROTOCOL HEADER GETTERS
-// =============================================================================
+// BGP Protocol Headers
+cord_bgp_hdr_t* cord_header_bgp(const cord_tcp_hdr_t *tcp_hdr);
+cord_bgp_open_t* cord_header_bgp_open(const cord_bgp_hdr_t *bgp_hdr);
+cord_bgp_update_t* cord_header_bgp_update(const cord_bgp_hdr_t *bgp_hdr);
+cord_bgp_notification_t* cord_header_bgp_notification(const cord_bgp_hdr_t *bgp_hdr);
+cord_bgp_keepalive_t* cord_header_bgp_keepalive(const cord_bgp_hdr_t *bgp_hdr);
+cord_bgp_path_attr_t* cord_header_bgp_path_attr(const void *attr_data);
+cord_bgp_origin_attr_t* cord_header_bgp_origin_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_as_path_attr_t* cord_header_bgp_as_path_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_next_hop_attr_t* cord_header_bgp_next_hop_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_med_attr_t* cord_header_bgp_med_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_local_pref_attr_t* cord_header_bgp_local_pref_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_communities_attr_t* cord_header_bgp_communities_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_mp_reach_attr_t* cord_header_bgp_mp_reach_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_mp_unreach_attr_t* cord_header_bgp_mp_unreach_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_extended_communities_attr_t* cord_header_bgp_extended_communities_attr(const cord_bgp_path_attr_t *attr);
+cord_bgp_large_communities_attr_t* cord_header_bgp_large_communities_attr(const cord_bgp_path_attr_t *attr);
 
-// IPv4 Protocol Headers
-cord_ipv4_hdr_t* cord_get_ipv4_hdr(const void *buffer);
-cord_ipv4_hdr_t* cord_get_ipv4_hdr_l3(const void *buffer);
-cord_ipv4_hdr_t* cord_get_ipv4_hdr_from_eth(const cord_eth_hdr_t *eth_hdr);
+// RIP Protocol Headers
+cord_rip_hdr_t* cord_header_rip(const cord_udp_hdr_t *udp_hdr);
+cord_rip_msg_t* cord_header_rip_msg(const cord_udp_hdr_t *udp_hdr);
+cord_rip_v1_entry_t* cord_header_rip_v1_entry(const cord_rip_msg_t *rip_msg, uint16_t index);
+cord_rip_v2_entry_t* cord_header_rip_v2_entry(const cord_rip_msg_t *rip_msg, uint16_t index);
+cord_rip_v2_auth_t* cord_header_rip_v2_auth(const cord_rip_msg_t *rip_msg, uint16_t index);
+cord_ripng_hdr_t* cord_header_ripng(const cord_udp_hdr_t *udp_hdr);
+cord_ripng_entry_t* cord_header_ripng_entry(const cord_ripng_hdr_t *ripng_hdr, uint16_t index);
 
-// IPv6 Protocol Headers
-cord_ipv6_hdr_t* cord_get_ipv6_hdr(const void *buffer);
-cord_ipv6_hdr_t* cord_get_ipv6_hdr_from_eth(const cord_eth_hdr_t *eth_hdr);
+// IS-IS Protocol Headers
+cord_isis_common_hdr_t* cord_header_isis_common(const void *buffer);
+cord_isis_p2p_hello_t* cord_header_isis_p2p_hello(const cord_isis_common_hdr_t *common_hdr);
+cord_isis_lan_hello_t* cord_header_isis_lan_hello(const cord_isis_common_hdr_t *common_hdr);
+cord_isis_lsp_t* cord_header_isis_lsp(const cord_isis_common_hdr_t *common_hdr);
+cord_isis_csnp_t* cord_header_isis_csnp(const cord_isis_common_hdr_t *common_hdr);
+cord_isis_psnp_t* cord_header_isis_psnp(const cord_isis_common_hdr_t *common_hdr);
+cord_isis_tlv_t* cord_header_isis_tlv(const void *tlv_data);
+cord_isis_area_addr_tlv_t* cord_header_isis_area_addr_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_iis_neighbors_tlv_t* cord_header_isis_iis_neighbors_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_auth_tlv_t* cord_header_isis_auth_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_lsp_entries_tlv_t* cord_header_isis_lsp_entries_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_extended_is_reach_tlv_t* cord_header_isis_extended_is_reach_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_ip_internal_reach_tlv_t* cord_header_isis_ip_internal_reach_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_ip_external_reach_tlv_t* cord_header_isis_ip_external_reach_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_extended_ip_reach_tlv_t* cord_header_isis_extended_ip_reach_tlv(const cord_isis_tlv_t *tlv);
+cord_isis_ipv6_reach_tlv_t* cord_header_isis_ipv6_reach_tlv(const cord_isis_tlv_t *tlv);
 
-// ICMP Protocol Headers
-cord_icmp_hdr_t* cord_get_icmp_hdr(const cord_ipv4_hdr_t *ip_hdr);
-cord_icmpv6_hdr_t* cord_get_icmpv6_hdr(const cord_ipv6_hdr_t *ip6_hdr);
+// EIGRP Protocol Headers
+cord_eigrp_hdr_t* cord_header_eigrp(const cord_ipv4_hdr_t *ip_hdr);
+cord_eigrp_tlv_t* cord_header_eigrp_tlv(const void *tlv_data);
 
-// =============================================================================
-// OSI LAYER 4 (TRANSPORT) - PROTOCOL HEADER GETTERS
-// =============================================================================
-
-// TCP Protocol Headers
-cord_tcp_hdr_t* cord_get_tcp_hdr_ipv4(const cord_ipv4_hdr_t *ip_hdr);
-cord_tcp_hdr_t* cord_get_tcp_hdr_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
-
-// UDP Protocol Headers
-cord_udp_hdr_t* cord_get_udp_hdr_ipv4(const cord_ipv4_hdr_t *ip_hdr);
-cord_udp_hdr_t* cord_get_udp_hdr_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
-
-// SCTP Protocol Headers
-cord_sctp_hdr_t* cord_get_sctp_hdr_ipv4(const cord_ipv4_hdr_t *ip_hdr);
-cord_sctp_hdr_t* cord_get_sctp_hdr_ipv6(const cord_ipv6_hdr_t *ip6_hdr);
-
-// =============================================================================
-// TUNNELING PROTOCOLS - PROTOCOL HEADER GETTERS
-// =============================================================================
-
-// GRE Protocol Headers
-cord_gre_hdr_t* cord_get_gre_hdr(const cord_ipv4_hdr_t *ip_hdr);
-
-// VXLAN Protocol Headers
-cord_vxlan_hdr_t* cord_get_vxlan_hdr(const cord_udp_hdr_t *udp_hdr);
-
-// GTP-U Protocol Headers
-cord_gtpu_hdr_t* cord_get_gtpu_hdr(const cord_udp_hdr_t *udp_hdr);
-
-// =============================================================================
-// OSI LAYER 5-7 (SESSION/PRESENTATION/APPLICATION) - PROTOCOL HEADER GETTERS
-// =============================================================================
-
-// OSPF Routing Protocol Headers
-cord_ospf_hdr_t* cord_get_ospf_hdr(const cord_ipv4_hdr_t *ip_hdr);
-cord_ospf_hello_t* cord_get_ospf_hello(const cord_ospf_hdr_t *ospf_hdr);
-cord_ospf_db_desc_t* cord_get_ospf_db_desc(const cord_ospf_hdr_t *ospf_hdr);
-cord_ospf_ls_req_t* cord_get_ospf_ls_req(const cord_ospf_hdr_t *ospf_hdr);
-cord_ospf_ls_upd_t* cord_get_ospf_ls_upd(const cord_ospf_hdr_t *ospf_hdr);
-cord_ospf_ls_ack_t* cord_get_ospf_ls_ack(const cord_ospf_hdr_t *ospf_hdr);
-cord_ospf_lsa_hdr_t* cord_get_ospf_lsa_hdr(const void *lsa_data);
-cord_ospf_router_lsa_t* cord_get_ospf_router_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-cord_ospf_network_lsa_t* cord_get_ospf_network_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-cord_ospf_summary_lsa_t* cord_get_ospf_summary_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-cord_ospf_external_lsa_t* cord_get_ospf_external_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-cord_ospf_nssa_lsa_t* cord_get_ospf_nssa_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-cord_ospf_opaque_lsa_t* cord_get_ospf_opaque_lsa(const cord_ospf_lsa_hdr_t *lsa_hdr);
-
-// BGP Routing Protocol Headers
-cord_bgp_hdr_t* cord_get_bgp_hdr(const cord_tcp_hdr_t *tcp_hdr);
-cord_bgp_open_t* cord_get_bgp_open(const cord_bgp_hdr_t *bgp_hdr);
-cord_bgp_update_t* cord_get_bgp_update(const cord_bgp_hdr_t *bgp_hdr);
-cord_bgp_notification_t* cord_get_bgp_notification(const cord_bgp_hdr_t *bgp_hdr);
-cord_bgp_keepalive_t* cord_get_bgp_keepalive(const cord_bgp_hdr_t *bgp_hdr);
-cord_bgp_path_attr_t* cord_get_bgp_path_attr(const void *attr_data);
-cord_bgp_origin_attr_t* cord_get_bgp_origin_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_as_path_attr_t* cord_get_bgp_as_path_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_next_hop_attr_t* cord_get_bgp_next_hop_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_med_attr_t* cord_get_bgp_med_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_local_pref_attr_t* cord_get_bgp_local_pref_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_communities_attr_t* cord_get_bgp_communities_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_mp_reach_attr_t* cord_get_bgp_mp_reach_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_mp_unreach_attr_t* cord_get_bgp_mp_unreach_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_extended_communities_attr_t* cord_get_bgp_extended_communities_attr(const cord_bgp_path_attr_t *attr);
-cord_bgp_large_communities_attr_t* cord_get_bgp_large_communities_attr(const cord_bgp_path_attr_t *attr);
-
-// RIP Routing Protocol Headers
-cord_rip_hdr_t* cord_get_rip_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_rip_msg_t* cord_get_rip_msg(const cord_udp_hdr_t *udp_hdr);
-cord_rip_v1_entry_t* cord_get_rip_v1_entry(const cord_rip_msg_t *rip_msg, uint16_t index);
-cord_rip_v2_entry_t* cord_get_rip_v2_entry(const cord_rip_msg_t *rip_msg, uint16_t index);
-cord_rip_v2_auth_t* cord_get_rip_v2_auth(const cord_rip_msg_t *rip_msg, uint16_t index);
-cord_ripng_hdr_t* cord_get_ripng_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_ripng_entry_t* cord_get_ripng_entry(const cord_ripng_hdr_t *ripng_hdr, uint16_t index);
-
-// IS-IS Routing Protocol Headers
-cord_isis_common_hdr_t* cord_get_isis_common_hdr(const void *buffer);
-cord_isis_p2p_hello_t* cord_get_isis_p2p_hello(const cord_isis_common_hdr_t *common_hdr);
-cord_isis_lan_hello_t* cord_get_isis_lan_hello(const cord_isis_common_hdr_t *common_hdr);
-cord_isis_lsp_t* cord_get_isis_lsp(const cord_isis_common_hdr_t *common_hdr);
-cord_isis_csnp_t* cord_get_isis_csnp(const cord_isis_common_hdr_t *common_hdr);
-cord_isis_psnp_t* cord_get_isis_psnp(const cord_isis_common_hdr_t *common_hdr);
-cord_isis_tlv_t* cord_get_isis_tlv(const void *tlv_data);
-cord_isis_area_addr_tlv_t* cord_get_isis_area_addr_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_iis_neighbors_tlv_t* cord_get_isis_iis_neighbors_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_auth_tlv_t* cord_get_isis_auth_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_lsp_entries_tlv_t* cord_get_isis_lsp_entries_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_extended_is_reach_tlv_t* cord_get_isis_extended_is_reach_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_ip_internal_reach_tlv_t* cord_get_isis_ip_internal_reach_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_ip_external_reach_tlv_t* cord_get_isis_ip_external_reach_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_extended_ip_reach_tlv_t* cord_get_isis_extended_ip_reach_tlv(const cord_isis_tlv_t *tlv);
-cord_isis_ipv6_reach_tlv_t* cord_get_isis_ipv6_reach_tlv(const cord_isis_tlv_t *tlv);
-
-// EIGRP Routing Protocol Headers
-cord_eigrp_hdr_t* cord_get_eigrp_hdr(const cord_ipv4_hdr_t *ip_hdr);
-cord_eigrp_tlv_t* cord_get_eigrp_tlv(const void *tlv_data);
-
-// PIM Multicast Protocol Headers
-cord_pim_hdr_t* cord_get_pim_hdr(const cord_ipv4_hdr_t *ip_hdr);
-
-// IGMP Multicast Protocol Headers
-cord_igmpv3_query_t* cord_get_igmpv3_query(const cord_ipv4_hdr_t *ip_hdr);
+// PIM Protocol Headers
+cord_pim_hdr_t* cord_header_pim(const cord_ipv4_hdr_t *ip_hdr);
 
 // First Hop Redundancy Protocol Headers
-cord_hsrp_hdr_t* cord_get_hsrp_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_vrrp_hdr_t* cord_get_vrrp_hdr(const cord_ipv4_hdr_t *ip_hdr);
+cord_hsrp_hdr_t* cord_header_hsrp(const cord_udp_hdr_t *udp_hdr);
+cord_vrrp_hdr_t* cord_header_vrrp(const cord_ipv4_hdr_t *ip_hdr);
 
 // Network Management Protocol Headers
-cord_bfd_hdr_t* cord_get_bfd_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_ldp_hdr_t* cord_get_ldp_hdr(const cord_tcp_hdr_t *tcp_hdr);
-cord_rsvp_hdr_t* cord_get_rsvp_hdr(const cord_ipv4_hdr_t *ip_hdr);
+cord_bfd_hdr_t* cord_header_bfd(const cord_udp_hdr_t *udp_hdr);
+cord_ldp_hdr_t* cord_header_ldp(const cord_tcp_hdr_t *tcp_hdr);
+cord_rsvp_hdr_t* cord_header_rsvp(const cord_ipv4_hdr_t *ip_hdr);
+
+// IGMP Protocol Headers
+cord_igmpv3_query_t* cord_header_igmpv3_query(const cord_ipv4_hdr_t *ip_hdr);
 
 // DHCP Protocol Headers
-cord_dhcp_hdr_t* cord_get_dhcp_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_dhcp_option_t* cord_get_dhcp_option(const cord_dhcp_hdr_t *dhcp_hdr, uint16_t offset);
-cord_dhcpv6_hdr_t* cord_get_dhcpv6_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_dhcpv6_relay_hdr_t* cord_get_dhcpv6_relay_hdr(const cord_udp_hdr_t *udp_hdr);
-cord_dhcpv6_option_t* cord_get_dhcpv6_option(const void *options_data, uint16_t offset);
+cord_dhcp_hdr_t* cord_header_dhcp(const cord_udp_hdr_t *udp_hdr);
+cord_dhcp_option_t* cord_header_dhcp_option(const cord_dhcp_hdr_t *dhcp_hdr, uint16_t offset);
+cord_dhcpv6_hdr_t* cord_header_dhcpv6(const cord_udp_hdr_t *udp_hdr);
+cord_dhcpv6_relay_hdr_t* cord_header_dhcpv6_relay(const cord_udp_hdr_t *udp_hdr);
+cord_dhcpv6_option_t* cord_header_dhcpv6_option(const void *options_data, uint16_t offset);
 
 // IPv6 Neighbor Discovery Protocol Headers
-cord_ipv6_nd_router_solicit_t* cord_get_ipv6_nd_router_solicit(const cord_icmpv6_hdr_t *icmp6_hdr);
-cord_ipv6_nd_router_advert_t* cord_get_ipv6_nd_router_advert(const cord_icmpv6_hdr_t *icmp6_hdr);
-cord_ipv6_nd_neighbor_solicit_t* cord_get_ipv6_nd_neighbor_solicit(const cord_icmpv6_hdr_t *icmp6_hdr);
-cord_ipv6_nd_neighbor_advert_t* cord_get_ipv6_nd_neighbor_advert(const cord_icmpv6_hdr_t *icmp6_hdr);
-cord_ipv6_nd_redirect_t* cord_get_ipv6_nd_redirect(const cord_icmpv6_hdr_t *icmp6_hdr);
-cord_ipv6_nd_opt_t* cord_get_ipv6_nd_option(const void *options_data, uint16_t offset);
-cord_ipv6_nd_opt_lladdr_t* cord_get_ipv6_nd_opt_lladdr(const cord_ipv6_nd_opt_t *opt);
-cord_ipv6_nd_opt_prefix_info_t* cord_get_ipv6_nd_opt_prefix_info(const cord_ipv6_nd_opt_t *opt);
-cord_ipv6_nd_opt_mtu_t* cord_get_ipv6_nd_opt_mtu(const cord_ipv6_nd_opt_t *opt);
-cord_ipv6_nd_opt_rdnss_t* cord_get_ipv6_nd_opt_rdnss(const cord_ipv6_nd_opt_t *opt);
-cord_ipv6_nd_opt_dnssl_t* cord_get_ipv6_nd_opt_dnssl(const cord_ipv6_nd_opt_t *opt);
-
-// =============================================================================
-// OSI LAYER 2 (DATA LINK) - PROTOCOL FIELD GETTERS
-// =============================================================================
+cord_ipv6_nd_router_solicit_t* cord_header_ipv6_nd_router_solicit(const cord_icmpv6_hdr_t *icmp6_hdr);
+cord_ipv6_nd_router_advert_t* cord_header_ipv6_nd_router_advert(const cord_icmpv6_hdr_t *icmp6_hdr);
+cord_ipv6_nd_neighbor_solicit_t* cord_header_ipv6_nd_neighbor_solicit(const cord_icmpv6_hdr_t *icmp6_hdr);
+cord_ipv6_nd_neighbor_advert_t* cord_header_ipv6_nd_neighbor_advert(const cord_icmpv6_hdr_t *icmp6_hdr);
+cord_ipv6_nd_redirect_t* cord_header_ipv6_nd_redirect(const cord_icmpv6_hdr_t *icmp6_hdr);
+cord_ipv6_nd_opt_t* cord_header_ipv6_nd_option(const void *options_data, uint16_t offset);
+cord_ipv6_nd_opt_lladdr_t* cord_header_ipv6_nd_opt_lladdr(const cord_ipv6_nd_opt_t *opt);
+cord_ipv6_nd_opt_prefix_info_t* cord_header_ipv6_nd_opt_prefix_info(const cord_ipv6_nd_opt_t *opt);
+cord_ipv6_nd_opt_mtu_t* cord_header_ipv6_nd_opt_mtu(const cord_ipv6_nd_opt_t *opt);
+cord_ipv6_nd_opt_rdnss_t* cord_header_ipv6_nd_opt_rdnss(const cord_ipv6_nd_opt_t *opt);
+cord_ipv6_nd_opt_dnssl_t* cord_header_ipv6_nd_opt_dnssl(const cord_ipv6_nd_opt_t *opt);
 
 // Ethernet Field Getters
-void cord_get_eth_dst_addr(const cord_eth_hdr_t *eth, cord_mac_addr_t *dst);
-void cord_get_eth_src_addr(const cord_eth_hdr_t *eth, cord_mac_addr_t *src);
-uint16_t cord_get_eth_type(const cord_eth_hdr_t *eth);
+void cord_get_field_eth_dst_addr(const cord_eth_hdr_t *eth, cord_mac_addr_t *dst);
+void cord_get_field_eth_src_addr(const cord_eth_hdr_t *eth, cord_mac_addr_t *src);
+uint16_t cord_get_field_eth_type(const cord_eth_hdr_t *eth);
+uint16_t cord_get_field_eth_type_ntohs(const cord_eth_hdr_t *eth);
 
 // VLAN Field Getters
-uint8_t cord_get_vlan_pcp(const cord_vlan_hdr_t *vlan);
-uint8_t cord_get_vlan_dei(const cord_vlan_hdr_t *vlan);
-uint16_t cord_get_vlan_vid(const cord_vlan_hdr_t *vlan);
-
-// =============================================================================
-// OSI LAYER 3 (NETWORK) - PROTOCOL FIELD GETTERS
-// =============================================================================
+uint16_t cord_get_field_vlan_tci(const cord_vlan_hdr_t *vlan);
+uint16_t cord_get_field_vlan_tci_ntohs(const cord_vlan_hdr_t *vlan);
+uint8_t cord_get_field_vlan_pcp(const cord_vlan_hdr_t *vlan);
+uint8_t cord_get_field_vlan_pcp_ntohs(const cord_vlan_hdr_t *vlan);
+uint8_t cord_get_field_vlan_dei(const cord_vlan_hdr_t *vlan);
+uint8_t cord_get_field_vlan_dei_ntohs(const cord_vlan_hdr_t *vlan);
+uint16_t cord_get_field_vlan_vid(const cord_vlan_hdr_t *vlan);
+uint16_t cord_get_field_vlan_vid_ntohs(const cord_vlan_hdr_t *vlan);
+uint16_t cord_get_field_vlan_type(const cord_vlan_hdr_t *vlan);
+uint16_t cord_get_field_vlan_type_ntohs(const cord_vlan_hdr_t *vlan);
 
 // IPv4 Field Getters
-uint8_t cord_get_ipv4_version(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_ihl(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_tos(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_dscp(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_ecn(const cord_ipv4_hdr_t *ip);
-uint16_t cord_get_ipv4_total_length(const cord_ipv4_hdr_t *ip);
-uint16_t cord_get_ipv4_total_length_ntohs(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_header_length(const cord_ipv4_hdr_t *ip);
-uint16_t cord_get_ipv4_id(const cord_ipv4_hdr_t *ip);
-uint16_t cord_get_ipv4_frag_off(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_ttl(const cord_ipv4_hdr_t *ip);
-uint8_t cord_get_ipv4_protocol(const cord_ipv4_hdr_t *ip);
-uint16_t cord_get_ipv4_checksum(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_src_addr(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_src_addr_ntohl(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_src_addr_l3(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_dst_addr(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_dst_addr_ntohl(const cord_ipv4_hdr_t *ip);
-uint32_t cord_get_ipv4_dst_addr_l3(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_version(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_ihl(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_tos(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_dscp(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_ecn(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_total_length(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_total_length_ntohs(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_header_length(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_id(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_id_ntohs(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_frag_off(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_frag_off_ntohs(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_ttl(const cord_ipv4_hdr_t *ip);
+uint8_t cord_get_field_ipv4_protocol(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_checksum(const cord_ipv4_hdr_t *ip);
+uint16_t cord_get_field_ipv4_checksum_ntohs(const cord_ipv4_hdr_t *ip);
+uint32_t cord_get_field_ipv4_src_addr(const cord_ipv4_hdr_t *ip);
+uint32_t cord_get_field_ipv4_src_addr_ntohl(const cord_ipv4_hdr_t *ip);
+uint32_t cord_get_field_ipv4_dst_addr(const cord_ipv4_hdr_t *ip);
+uint32_t cord_get_field_ipv4_dst_addr_ntohl(const cord_ipv4_hdr_t *ip);
 
-// IPv6 Field Getters  
-uint8_t cord_get_ipv6_version(const cord_ipv6_hdr_t *ip6);
-uint8_t cord_get_ipv6_traffic_class(const cord_ipv6_hdr_t *ip6);
-uint32_t cord_get_ipv6_flow_label(const cord_ipv6_hdr_t *ip6);
-uint16_t cord_get_ipv6_payload_length(const cord_ipv6_hdr_t *ip6);
-uint8_t cord_get_ipv6_next_header(const cord_ipv6_hdr_t *ip6);
-uint8_t cord_get_ipv6_hop_limit(const cord_ipv6_hdr_t *ip6);
-void cord_get_ipv6_src_addr(const cord_ipv6_hdr_t *ip6, cord_ipv6_addr_t *src);
-void cord_get_ipv6_dst_addr(const cord_ipv6_hdr_t *ip6, cord_ipv6_addr_t *dst);
-
-// ICMP Field Getters
-uint8_t cord_get_icmp_type(const cord_icmp_hdr_t *icmp);
-uint8_t cord_get_icmp_code(const cord_icmp_hdr_t *icmp);
-uint16_t cord_get_icmp_checksum(const cord_icmp_hdr_t *icmp);
-uint16_t cord_get_icmp_id(const cord_icmp_hdr_t *icmp);
-uint16_t cord_get_icmp_sequence(const cord_icmp_hdr_t *icmp);
-
-// =============================================================================
-// OSI LAYER 4 (TRANSPORT) - PROTOCOL FIELD GETTERS
-// =============================================================================
+// IPv6 Field Getters
+uint8_t cord_get_field_ipv6_version(const cord_ipv6_hdr_t *ip6);
+uint8_t cord_get_field_ipv6_version_ntohl(const cord_ipv6_hdr_t *ip6);
+uint8_t cord_get_field_ipv6_traffic_class(const cord_ipv6_hdr_t *ip6);
+uint8_t cord_get_field_ipv6_traffic_class_ntohl(const cord_ipv6_hdr_t *ip6);
+uint32_t cord_get_field_ipv6_flow_label(const cord_ipv6_hdr_t *ip6);
+uint32_t cord_get_field_ipv6_flow_label_ntohl(const cord_ipv6_hdr_t *ip6);
+uint16_t cord_get_field_ipv6_payload_length(const cord_ipv6_hdr_t *ip6);
+uint16_t cord_get_field_ipv6_payload_length_ntohs(const cord_ipv6_hdr_t *ip6);
+uint8_t cord_get_field_ipv6_next_header(const cord_ipv6_hdr_t *ip6);
+uint8_t cord_get_field_ipv6_hop_limit(const cord_ipv6_hdr_t *ip6);
+void cord_get_field_ipv6_src_addr(const cord_ipv6_hdr_t *ip6, cord_ipv6_addr_t *src);
+void cord_get_field_ipv6_dst_addr(const cord_ipv6_hdr_t *ip6, cord_ipv6_addr_t *dst);
 
 // TCP Field Getters
-uint16_t cord_get_tcp_src_port(const cord_tcp_hdr_t *tcp);
-uint16_t cord_get_tcp_dst_port(const cord_tcp_hdr_t *tcp);
-uint32_t cord_get_tcp_seq_num(const cord_tcp_hdr_t *tcp);
-uint32_t cord_get_tcp_ack_num(const cord_tcp_hdr_t *tcp);
-uint8_t cord_get_tcp_doff(const cord_tcp_hdr_t *tcp);
-uint16_t cord_get_tcp_window(const cord_tcp_hdr_t *tcp);
-uint16_t cord_get_tcp_checksum(const cord_tcp_hdr_t *tcp);
-uint16_t cord_get_tcp_urgent_ptr(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_fin(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_syn(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_rst(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_psh(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_ack(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_urg(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_ece(const cord_tcp_hdr_t *tcp);
-bool cord_get_tcp_cwr(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_src_port(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_src_port_ntohs(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_dst_port(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_dst_port_ntohs(const cord_tcp_hdr_t *tcp);
+uint32_t cord_get_field_tcp_seq_num(const cord_tcp_hdr_t *tcp);
+uint32_t cord_get_field_tcp_seq_num_ntohl(const cord_tcp_hdr_t *tcp);
+uint32_t cord_get_field_tcp_ack_num(const cord_tcp_hdr_t *tcp);
+uint32_t cord_get_field_tcp_ack_num_ntohl(const cord_tcp_hdr_t *tcp);
+uint8_t cord_get_field_tcp_doff(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_window(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_window_ntohs(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_checksum(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_checksum_ntohs(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_urgent_ptr(const cord_tcp_hdr_t *tcp);
+uint16_t cord_get_field_tcp_urgent_ptr_ntohs(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_fin(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_syn(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_rst(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_psh(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_ack(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_urg(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_ece(const cord_tcp_hdr_t *tcp);
+bool cord_get_field_tcp_cwr(const cord_tcp_hdr_t *tcp);
 
 // UDP Field Getters
-uint16_t cord_get_udp_src_port(const cord_udp_hdr_t *udp);
-uint16_t cord_get_udp_dst_port(const cord_udp_hdr_t *udp);
-uint16_t cord_get_udp_length(const cord_udp_hdr_t *udp);
-uint16_t cord_get_udp_checksum(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_src_port(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_src_port_ntohs(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_dst_port(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_dst_port_ntohs(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_length(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_length_ntohs(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_checksum(const cord_udp_hdr_t *udp);
+uint16_t cord_get_field_udp_checksum_ntohs(const cord_udp_hdr_t *udp);
 
 // SCTP Field Getters
-uint16_t cord_get_sctp_src_port(const cord_sctp_hdr_t *sctp);
-uint16_t cord_get_sctp_dst_port(const cord_sctp_hdr_t *sctp);
-uint32_t cord_get_sctp_vtag(const cord_sctp_hdr_t *sctp);
-uint32_t cord_get_sctp_checksum(const cord_sctp_hdr_t *sctp);
+uint16_t cord_get_field_sctp_src_port(const cord_sctp_hdr_t *sctp);
+uint16_t cord_get_field_sctp_src_port_ntohs(const cord_sctp_hdr_t *sctp);
+uint16_t cord_get_field_sctp_dst_port(const cord_sctp_hdr_t *sctp);
+uint16_t cord_get_field_sctp_dst_port_ntohs(const cord_sctp_hdr_t *sctp);
+uint32_t cord_get_field_sctp_vtag(const cord_sctp_hdr_t *sctp);
+uint32_t cord_get_field_sctp_vtag_ntohl(const cord_sctp_hdr_t *sctp);
+uint32_t cord_get_field_sctp_checksum(const cord_sctp_hdr_t *sctp);
+uint32_t cord_get_field_sctp_checksum_ntohl(const cord_sctp_hdr_t *sctp);
 
-// =============================================================================
-// OSI LAYER 2 (DATA LINK) - PROTOCOL FIELD MATCHING FUNCTIONS
-// =============================================================================
+// ICMP Field Getters
+uint8_t cord_get_field_icmp_type(const cord_icmp_hdr_t *icmp);
+uint8_t cord_get_field_icmp_code(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_checksum(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_checksum_ntohs(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_id(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_id_ntohs(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_sequence(const cord_icmp_hdr_t *icmp);
+uint16_t cord_get_field_icmp_sequence_ntohs(const cord_icmp_hdr_t *icmp);
 
-// Ethernet Match Functions
-bool cord_match_eth_dst_addr(const cord_eth_hdr_t *eth, const cord_mac_addr_t *addr);
-bool cord_match_eth_src_addr(const cord_eth_hdr_t *eth, const cord_mac_addr_t *addr);
-bool cord_match_eth_type(const cord_eth_hdr_t *eth, uint16_t eth_type);
-bool cord_match_eth_broadcast(const cord_eth_hdr_t *eth);
-bool cord_match_eth_multicast(const cord_eth_hdr_t *eth);
-bool cord_match_eth_unicast(const cord_eth_hdr_t *eth);
+//
+// From ACTION
+//
 
-// VLAN Match Functions
-bool cord_match_vlan_pcp(const cord_vlan_hdr_t *vlan, uint8_t pcp);
-bool cord_match_vlan_dei(const cord_vlan_hdr_t *vlan, uint8_t dei);
-bool cord_match_vlan_vid(const cord_vlan_hdr_t *vlan, uint16_t vid);
-bool cord_match_vlan_vid_range(const cord_vlan_hdr_t *vlan, uint16_t min_vid, uint16_t max_vid);
 
-// =============================================================================
-// OSI LAYER 3 (NETWORK) - PROTOCOL FIELD MATCHING FUNCTIONS
-// =============================================================================
+//
+// Checksum related
+//
 
-// IPv4 Match Functions
-bool cord_match_ipv4_version(const cord_ipv4_hdr_t *ip);
-bool cord_match_ipv4_ihl(const cord_ipv4_hdr_t *ip, uint8_t ihl);
-bool cord_match_ipv4_tos(const cord_ipv4_hdr_t *ip, uint8_t tos);
-bool cord_match_ipv4_dscp(const cord_ipv4_hdr_t *ip, uint8_t dscp);
-bool cord_match_ipv4_ecn(const cord_ipv4_hdr_t *ip, uint8_t ecn);
-bool cord_match_ipv4_total_length(const cord_ipv4_hdr_t *ip, uint16_t length);
-bool cord_match_ipv4_id(const cord_ipv4_hdr_t *ip, uint16_t id);
-bool cord_match_ipv4_flags(const cord_ipv4_hdr_t *ip, uint16_t flags);
-bool cord_match_ipv4_frag_offset(const cord_ipv4_hdr_t *ip, uint16_t offset);
-bool cord_match_ipv4_ttl(const cord_ipv4_hdr_t *ip, uint8_t ttl);
-bool cord_match_ipv4_protocol(const cord_ipv4_hdr_t *ip, uint8_t protocol);
-bool cord_match_ipv4_checksum(const cord_ipv4_hdr_t *ip, uint16_t checksum);
-bool cord_match_ipv4_src_addr(const cord_ipv4_hdr_t *ip, uint32_t addr);
-bool cord_match_ipv4_dst_addr(const cord_ipv4_hdr_t *ip, uint32_t addr);
-bool cord_match_ipv4_src_subnet(const cord_ipv4_hdr_t *ip, uint32_t subnet, uint32_t mask);
-bool cord_match_ipv4_dst_subnet(const cord_ipv4_hdr_t *ip, uint32_t subnet, uint32_t mask);
-bool cord_match_ipv4_fragmented(const cord_ipv4_hdr_t *ip);
-bool cord_match_ipv4_first_fragment(const cord_ipv4_hdr_t *ip);
-bool cord_match_ipv4_last_fragment(const cord_ipv4_hdr_t *ip);
+// IPv4 payload length calculation
+uint16_t cord_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr);
 
-// IPv6 Match Functions
-bool cord_match_ipv6_version(const cord_ipv6_hdr_t *ip6);
-bool cord_match_ipv6_traffic_class(const cord_ipv6_hdr_t *ip6, uint8_t tc);
-bool cord_match_ipv6_flow_label(const cord_ipv6_hdr_t *ip6, uint32_t flow);
-bool cord_match_ipv6_payload_length(const cord_ipv6_hdr_t *ip6, uint16_t length);
-bool cord_match_ipv6_next_header(const cord_ipv6_hdr_t *ip6, uint8_t next_hdr);
-bool cord_match_ipv6_hop_limit(const cord_ipv6_hdr_t *ip6, uint8_t hop_limit);
-bool cord_match_ipv6_src_addr(const cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *addr);
-bool cord_match_ipv6_dst_addr(const cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *addr);
-bool cord_match_ipv6_src_prefix(const cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *prefix, uint8_t prefix_len);
-bool cord_match_ipv6_dst_prefix(const cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *prefix, uint8_t prefix_len);
+// IPv6 payload length getter
+uint16_t cord_ipv6_payload_length_ntohs(const cord_ipv6_hdr_t *ip6_hdr);
 
-// ICMP Match Functions
-bool cord_match_icmp_type(const cord_icmp_hdr_t *icmp, uint8_t type);
-bool cord_match_icmp_code(const cord_icmp_hdr_t *icmp, uint8_t code);
-bool cord_match_icmp_echo_request(const cord_icmp_hdr_t *icmp);
-bool cord_match_icmp_echo_reply(const cord_icmp_hdr_t *icmp);
-bool cord_match_icmp_dest_unreachable(const cord_icmp_hdr_t *icmp);
-
-// =============================================================================
-// OSI LAYER 4 (TRANSPORT) - PROTOCOL FIELD MATCHING FUNCTIONS
-// =============================================================================
-
-// TCP Match Functions
-bool cord_match_tcp_src_port(const cord_tcp_hdr_t *tcp, uint16_t port);
-bool cord_match_tcp_dst_port(const cord_tcp_hdr_t *tcp, uint16_t port);
-bool cord_match_tcp_port_range(const cord_tcp_hdr_t *tcp, uint16_t min_port, uint16_t max_port, bool check_src);
-bool cord_match_tcp_seq_num(const cord_tcp_hdr_t *tcp, uint32_t seq);
-bool cord_match_tcp_ack_num(const cord_tcp_hdr_t *tcp, uint32_t ack);
-bool cord_match_tcp_data_offset(const cord_tcp_hdr_t *tcp, uint8_t offset);
-bool cord_match_tcp_window(const cord_tcp_hdr_t *tcp, uint16_t window);
-bool cord_match_tcp_checksum(const cord_tcp_hdr_t *tcp, uint16_t checksum);
-bool cord_match_tcp_urgent_ptr(const cord_tcp_hdr_t *tcp, uint16_t urg_ptr);
-bool cord_match_tcp_syn(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_ack(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_fin(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_rst(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_psh(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_urg(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_ece(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_cwr(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_established(const cord_tcp_hdr_t *tcp);
-bool cord_match_tcp_connection_request(const cord_tcp_hdr_t *tcp);
-
-// UDP Match Functions
-bool cord_match_udp_src_port(const cord_udp_hdr_t *udp, uint16_t port);
-bool cord_match_udp_dst_port(const cord_udp_hdr_t *udp, uint16_t port);
-bool cord_match_udp_port_range(const cord_udp_hdr_t *udp, uint16_t min_port, uint16_t max_port, bool check_src);
-bool cord_match_udp_length(const cord_udp_hdr_t *udp, uint16_t length);
-bool cord_match_udp_checksum(const cord_udp_hdr_t *udp, uint16_t checksum);
-
-// SCTP Match Functions  
-bool cord_match_sctp_src_port(const cord_sctp_hdr_t *sctp, uint16_t port);
-bool cord_match_sctp_dst_port(const cord_sctp_hdr_t *sctp, uint16_t port);
-bool cord_match_sctp_port_range(const cord_sctp_hdr_t *sctp, uint16_t min_port, uint16_t max_port, bool check_src);
-bool cord_match_sctp_vtag(const cord_sctp_hdr_t *sctp, uint32_t vtag);
-bool cord_match_sctp_checksum(const cord_sctp_hdr_t *sctp, uint32_t checksum);
-
-// =============================================================================
-// TUNNELING PROTOCOLS - PROTOCOL FIELD MATCHING FUNCTIONS
-// =============================================================================
-
-// GRE Protocol Match Functions
-bool cord_match_gre_checksum_present(const cord_gre_hdr_t *gre);
-bool cord_match_gre_key_present(const cord_gre_hdr_t *gre);
-bool cord_match_gre_sequence_present(const cord_gre_hdr_t *gre);
-bool cord_match_gre_protocol(const cord_gre_hdr_t *gre, uint16_t protocol);
-
-// VXLAN Protocol Match Functions
-bool cord_match_vxlan_vni(const cord_vxlan_hdr_t *vxlan, uint32_t vni);
-bool cord_match_vxlan_flags(const cord_vxlan_hdr_t *vxlan, uint8_t flags);
-
-// GTP-U Protocol Match Functions
-bool cord_match_gtpu_teid(const cord_gtpu_hdr_t *gtpu, uint32_t teid);
-bool cord_match_gtpu_msg_type(const cord_gtpu_hdr_t *gtpu, uint8_t msg_type);
-
-// =============================================================================
-// APPLICATION LAYER - ADVANCED PROTOCOL ANALYSIS FUNCTIONS
-// =============================================================================
-
-// DNS Protocol Analysis
-bool cord_match_is_dns_query(const cord_udp_hdr_t *udp);
-bool cord_match_is_dns_response(const cord_udp_hdr_t *udp);
-
-// DHCP Protocol Analysis
-bool cord_match_is_dhcp_request(const cord_udp_hdr_t *udp);
-bool cord_match_is_dhcp_response(const cord_udp_hdr_t *udp);
-
-// HTTP/HTTPS Protocol Analysis
-bool cord_match_is_http_request(const cord_tcp_hdr_t *tcp);
-bool cord_match_is_http_response(const cord_tcp_hdr_t *tcp);
-bool cord_match_is_https_traffic(const cord_tcp_hdr_t *tcp);
-
-// SSH Protocol Analysis
-bool cord_match_is_ssh_traffic(const cord_tcp_hdr_t *tcp);
-
-// =============================================================================
-// CROSS-LAYER PERFORMANCE UTILITIES
-// =============================================================================
-
-// Fast protocol detection (single pass through packet)
-typedef struct cord_protocol_info {
-    uint16_t eth_type;
-    uint8_t ip_version;
-    uint8_t ip_protocol;
-    uint16_t l4_src_port;
-    uint16_t l4_dst_port;
-    uint32_t l3_src_addr;
-    uint32_t l3_dst_addr;
-    bool has_vlan;
-    uint16_t vlan_vid;
-    bool is_fragment;
-    uint16_t payload_len;
-} cord_protocol_info_t;
-
-// Single function to extract all common protocol information
-bool cord_match_extract_protocol_info(const void *buffer, size_t len, cord_protocol_info_t *info);
-
-// Fast 5-tuple extraction for flow identification
-typedef struct cord_flow_tuple {
-    uint32_t src_addr;
-    uint32_t dst_addr;
-    uint16_t src_port;
-    uint16_t dst_port;
-    uint8_t protocol;
-} cord_flow_tuple_t;
-
-bool cord_match_extract_flow_tuple(const void *buffer, size_t len, cord_flow_tuple_t *tuple);
-
-// High-performance hash calculation for flow tables
-uint32_t cord_match_hash_flow_tuple(const cord_flow_tuple_t *tuple);
-
-// =============================================================================
-// CHECKSUM CALCULATION FUNCTIONS
-// =============================================================================
-
-// IPv4 Checksum Functions
+// IPv4 checksum calculation
 uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr);
+
+// IPv4 checksum validation
 bool cord_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr);
 
-// Transport Layer Checksum Functions
+// TCP checksum calculation for IPv4
 uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+
+// UDP checksum calculation for IPv4
 uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+
+// ICMP checksum calculation for IPv4
 uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
 
-// =============================================================================
-// PAYLOAD LENGTH UTILITIES
-// =============================================================================
-
-// Payload Length Calculation
-uint16_t cord_ipv4_payload_length(const cord_ipv4_hdr_t *ip_hdr);
-uint16_t cord_ipv6_payload_length(const cord_ipv6_hdr_t *ip6_hdr);
-
-// =============================================================================
-// CROSS-LAYER ADDRESS UTILITIES
-// =============================================================================
-
-// Layer 2 Address Type Detection
-bool cord_mac_is_multicast(const cord_mac_addr_t *mac_addr);
-bool cord_mac_is_broadcast(const cord_mac_addr_t *mac_addr);
-
-// Layer 3 Address Type Detection
-bool cord_ipv4_is_multicast(uint32_t addr);
-bool cord_ipv4_is_broadcast(uint32_t addr);
-
-// =============================================================================
-// STRING CONVERSION UTILITIES
-// =============================================================================
-
-// Address to String Conversion
-char* cord_ipv4_to_string(uint32_t addr, char *buf);
-char* cord_mac_to_string(const cord_mac_addr_t *mac_addr, char *buf);
-
-// =============================================================================
-// PACKET VALIDATION AND UTILITY FUNCTIONS
-// =============================================================================
-
-// Basic Packet Validation
-bool cord_packet_basic_validation(const void *buffer, size_t buf_len);
-
-// VLAN Tag Extraction
-uint8_t cord_extract_vlan_tags(const void *buffer, uint16_t *vlan_tags, uint8_t max_tags);
-
-// Ethernet CRC32 Calculation
+// Ethernet frame CRC32 calculation
 uint32_t cord_ethernet_crc32(const void *buffer, size_t frame_len);
 
 #endif // CORD_PROTOCOLS_H

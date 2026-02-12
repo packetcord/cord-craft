@@ -1,7 +1,7 @@
 #ifndef CORD_ROUTING_PROTOCOLS_H
 #define CORD_ROUTING_PROTOCOLS_H
 
-#include "cord_protocols_common.h"
+#include "cord_protocol_common.h"
 
 // OSPF (Open Shortest Path First) header
 typedef struct CORD_PACKED cord_ospf_hdr {
