@@ -166,7 +166,7 @@ typedef struct CORD_PACKED cord_gtpu_opt {
 #define CORD_VXLAN_VNI_MASK     0xFFFFFF00
 #define CORD_VXLAN_FLAGS_VALID_VNI 0x08
 
-// GTP-U constants  
+// GTP-U constants
 #define CORD_PORT_GTPU          2152    // GTP-U UDP port
 
 // GENEVE constants
