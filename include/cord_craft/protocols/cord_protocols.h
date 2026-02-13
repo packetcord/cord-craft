@@ -247,15 +247,120 @@ uint16_t cord_get_field_icmp_sequence(const cord_icmp_hdr_t *icmp);
 uint16_t cord_get_field_icmp_sequence_ntohs(const cord_icmp_hdr_t *icmp);
 
 //
-// From ACTION
+// Set
+//
+
+// Ethernet Field Setters
+void cord_set_field_eth_dst_addr(cord_eth_hdr_t *eth, const cord_mac_addr_t *dst);
+void cord_set_field_eth_src_addr(cord_eth_hdr_t *eth, const cord_mac_addr_t *src);
+void cord_set_field_eth_type(cord_eth_hdr_t *eth, uint16_t type);
+void cord_set_field_eth_type_htons(cord_eth_hdr_t *eth, uint16_t type);
+
+// VLAN Field Setters
+void cord_set_field_vlan_tci(cord_vlan_hdr_t *vlan, uint16_t tci);
+void cord_set_field_vlan_tci_htons(cord_vlan_hdr_t *vlan, uint16_t tci);
+void cord_set_field_vlan_pcp(cord_vlan_hdr_t *vlan, uint8_t pcp);
+void cord_set_field_vlan_pcp_htons(cord_vlan_hdr_t *vlan, uint8_t pcp);
+void cord_set_field_vlan_dei(cord_vlan_hdr_t *vlan, uint8_t dei);
+void cord_set_field_vlan_dei_htons(cord_vlan_hdr_t *vlan, uint8_t dei);
+void cord_set_field_vlan_vid(cord_vlan_hdr_t *vlan, uint16_t vid);
+void cord_set_field_vlan_vid_htons(cord_vlan_hdr_t *vlan, uint16_t vid);
+void cord_set_field_vlan_type(cord_vlan_hdr_t *vlan, uint16_t type);
+void cord_set_field_vlan_type_htons(cord_vlan_hdr_t *vlan, uint16_t type);
+
+// IPv4 Field Setters
+void cord_set_field_ipv4_version(cord_ipv4_hdr_t *ip, uint8_t version);
+void cord_set_field_ipv4_ihl(cord_ipv4_hdr_t *ip, uint8_t ihl);
+void cord_set_field_ipv4_tos(cord_ipv4_hdr_t *ip, uint8_t tos);
+void cord_set_field_ipv4_dscp(cord_ipv4_hdr_t *ip, uint8_t dscp);
+void cord_set_field_ipv4_ecn(cord_ipv4_hdr_t *ip, uint8_t ecn);
+void cord_set_field_ipv4_total_length(cord_ipv4_hdr_t *ip, uint16_t length);
+void cord_set_field_ipv4_total_length_htons(cord_ipv4_hdr_t *ip, uint16_t length);
+void cord_set_field_ipv4_id(cord_ipv4_hdr_t *ip, uint16_t id);
+void cord_set_field_ipv4_id_htons(cord_ipv4_hdr_t *ip, uint16_t id);
+void cord_set_field_ipv4_frag_off(cord_ipv4_hdr_t *ip, uint16_t frag_off);
+void cord_set_field_ipv4_frag_off_htons(cord_ipv4_hdr_t *ip, uint16_t frag_off);
+void cord_set_field_ipv4_ttl(cord_ipv4_hdr_t *ip, uint8_t ttl);
+void cord_set_field_ipv4_protocol(cord_ipv4_hdr_t *ip, uint8_t protocol);
+void cord_set_field_ipv4_checksum(cord_ipv4_hdr_t *ip, uint16_t checksum);
+void cord_set_field_ipv4_checksum_htons(cord_ipv4_hdr_t *ip, uint16_t checksum);
+void cord_set_field_ipv4_src_addr(cord_ipv4_hdr_t *ip, uint32_t addr);
+void cord_set_field_ipv4_src_addr_htonl(cord_ipv4_hdr_t *ip, uint32_t addr);
+void cord_set_field_ipv4_dst_addr(cord_ipv4_hdr_t *ip, uint32_t addr);
+void cord_set_field_ipv4_dst_addr_htonl(cord_ipv4_hdr_t *ip, uint32_t addr);
+
+// IPv6 Field Setters
+void cord_set_field_ipv6_version(cord_ipv6_hdr_t *ip6, uint8_t version);
+void cord_set_field_ipv6_traffic_class(cord_ipv6_hdr_t *ip6, uint8_t tc);
+void cord_set_field_ipv6_flow_label(cord_ipv6_hdr_t *ip6, uint32_t flow);
+void cord_set_field_ipv6_payload_length(cord_ipv6_hdr_t *ip6, uint16_t length);
+void cord_set_field_ipv6_payload_length_htons(cord_ipv6_hdr_t *ip6, uint16_t length);
+void cord_set_field_ipv6_next_header(cord_ipv6_hdr_t *ip6, uint8_t next_hdr);
+void cord_set_field_ipv6_hop_limit(cord_ipv6_hdr_t *ip6, uint8_t hop_limit);
+void cord_set_field_ipv6_src_addr(cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *src);
+void cord_set_field_ipv6_dst_addr(cord_ipv6_hdr_t *ip6, const cord_ipv6_addr_t *dst);
+
+// TCP Field Setters
+void cord_set_field_tcp_src_port(cord_tcp_hdr_t *tcp, uint16_t port);
+void cord_set_field_tcp_src_port_htons(cord_tcp_hdr_t *tcp, uint16_t port);
+void cord_set_field_tcp_dst_port(cord_tcp_hdr_t *tcp, uint16_t port);
+void cord_set_field_tcp_dst_port_htons(cord_tcp_hdr_t *tcp, uint16_t port);
+void cord_set_field_tcp_seq_num(cord_tcp_hdr_t *tcp, uint32_t seq);
+void cord_set_field_tcp_seq_num_htonl(cord_tcp_hdr_t *tcp, uint32_t seq);
+void cord_set_field_tcp_ack_num(cord_tcp_hdr_t *tcp, uint32_t ack);
+void cord_set_field_tcp_ack_num_htonl(cord_tcp_hdr_t *tcp, uint32_t ack);
+void cord_set_field_tcp_doff(cord_tcp_hdr_t *tcp, uint8_t doff);
+void cord_set_field_tcp_window(cord_tcp_hdr_t *tcp, uint16_t window);
+void cord_set_field_tcp_window_htons(cord_tcp_hdr_t *tcp, uint16_t window);
+void cord_set_field_tcp_checksum(cord_tcp_hdr_t *tcp, uint16_t checksum);
+void cord_set_field_tcp_checksum_htons(cord_tcp_hdr_t *tcp, uint16_t checksum);
+void cord_set_field_tcp_urgent_ptr(cord_tcp_hdr_t *tcp, uint16_t urg_ptr);
+void cord_set_field_tcp_urgent_ptr_htons(cord_tcp_hdr_t *tcp, uint16_t urg_ptr);
+void cord_set_field_tcp_fin(cord_tcp_hdr_t *tcp, bool fin);
+void cord_set_field_tcp_syn(cord_tcp_hdr_t *tcp, bool syn);
+void cord_set_field_tcp_rst(cord_tcp_hdr_t *tcp, bool rst);
+void cord_set_field_tcp_psh(cord_tcp_hdr_t *tcp, bool psh);
+void cord_set_field_tcp_ack(cord_tcp_hdr_t *tcp, bool ack);
+void cord_set_field_tcp_urg(cord_tcp_hdr_t *tcp, bool urg);
+void cord_set_field_tcp_ece(cord_tcp_hdr_t *tcp, bool ece);
+void cord_set_field_tcp_cwr(cord_tcp_hdr_t *tcp, bool cwr);
+
+// UDP Field Setters
+void cord_set_field_udp_src_port(cord_udp_hdr_t *udp, uint16_t port);
+void cord_set_field_udp_src_port_htons(cord_udp_hdr_t *udp, uint16_t port);
+void cord_set_field_udp_dst_port(cord_udp_hdr_t *udp, uint16_t port);
+void cord_set_field_udp_dst_port_htons(cord_udp_hdr_t *udp, uint16_t port);
+void cord_set_field_udp_length(cord_udp_hdr_t *udp, uint16_t length);
+void cord_set_field_udp_length_htons(cord_udp_hdr_t *udp, uint16_t length);
+void cord_set_field_udp_checksum(cord_udp_hdr_t *udp, uint16_t checksum);
+void cord_set_field_udp_checksum_htons(cord_udp_hdr_t *udp, uint16_t checksum);
+
+// SCTP Field Setters
+void cord_set_field_sctp_src_port(cord_sctp_hdr_t *sctp, uint16_t port);
+void cord_set_field_sctp_src_port_htons(cord_sctp_hdr_t *sctp, uint16_t port);
+void cord_set_field_sctp_dst_port(cord_sctp_hdr_t *sctp, uint16_t port);
+void cord_set_field_sctp_dst_port_htons(cord_sctp_hdr_t *sctp, uint16_t port);
+void cord_set_field_sctp_vtag(cord_sctp_hdr_t *sctp, uint32_t vtag);
+void cord_set_field_sctp_vtag_htonl(cord_sctp_hdr_t *sctp, uint32_t vtag);
+void cord_set_field_sctp_checksum(cord_sctp_hdr_t *sctp, uint32_t checksum);
+void cord_set_field_sctp_checksum_htonl(cord_sctp_hdr_t *sctp, uint32_t checksum);
+
+// ICMP Field Setters
+void cord_set_field_icmp_type(cord_icmp_hdr_t *icmp, uint8_t type);
+void cord_set_field_icmp_code(cord_icmp_hdr_t *icmp, uint8_t code);
+void cord_set_field_icmp_checksum(cord_icmp_hdr_t *icmp, uint16_t checksum);
+void cord_set_field_icmp_checksum_htons(cord_icmp_hdr_t *icmp, uint16_t checksum);
+void cord_set_field_icmp_id(cord_icmp_hdr_t *icmp, uint16_t id);
+void cord_set_field_icmp_id_htons(cord_icmp_hdr_t *icmp, uint16_t id);
+void cord_set_field_icmp_sequence(cord_icmp_hdr_t *icmp, uint16_t sequence);
+void cord_set_field_icmp_sequence_htons(cord_icmp_hdr_t *icmp, uint16_t sequence);
+
+//
+// Calculate
 //
 
 // IPv4 checksum validation
 bool cord_compare_if_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr);
-
-//
-// Checksum related
-//
 
 // IPv4 payload length calculation
 uint16_t cord_calculate_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr);
