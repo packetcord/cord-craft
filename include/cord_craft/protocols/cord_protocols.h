@@ -8,7 +8,6 @@
 #include "cord_routing_protocols.h"
 #include "cord_tunneling_protocols.h"
 
-
 //
 // From MATCH
 //
@@ -251,33 +250,29 @@ uint16_t cord_get_field_icmp_sequence_ntohs(const cord_icmp_hdr_t *icmp);
 // From ACTION
 //
 
+// IPv4 checksum validation
+bool cord_compare_if_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr);
 
 //
 // Checksum related
 //
 
 // IPv4 payload length calculation
-uint16_t cord_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr);
-
-// IPv6 payload length getter
-uint16_t cord_ipv6_payload_length_ntohs(const cord_ipv6_hdr_t *ip6_hdr);
+uint16_t cord_calculate_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr);
 
 // IPv4 checksum calculation
-uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr);
-
-// IPv4 checksum validation
-bool cord_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_calculate_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr);
 
 // TCP checksum calculation for IPv4
-uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_calculate_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
 
 // UDP checksum calculation for IPv4
-uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_calculate_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
 
 // ICMP checksum calculation for IPv4
-uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
+uint16_t cord_calculate_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr);
 
 // Ethernet frame CRC32 calculation
-uint32_t cord_ethernet_crc32(const void *buffer, size_t frame_len);
+uint32_t cord_calculate_ethernet_crc32(const void *buffer, size_t frame_len);
 
 #endif // CORD_PROTOCOLS_H

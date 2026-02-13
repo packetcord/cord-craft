@@ -1318,27 +1318,42 @@ uint16_t cord_get_field_icmp_sequence_ntohs(const cord_icmp_hdr_t *icmp)
 // From ACTION
 //
 
+// IPv4 checksum validation
+bool cord_compare_if_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr)
+{
+    uint32_t sum = 0;
+    const uint8_t *ptr = (const uint8_t*)ip_hdr;
+    uint8_t ihl = ip_hdr->ihl * 4; // Header length in bytes
+    
+    // Sum all 16-bit words including checksum field
+    for (uint8_t i = 0; i < ihl; i += 2) {
+        uint16_t word = (ptr[i] << 8) | ptr[i + 1];
+        sum += word;
+    }
+    
+    // Add carry bits and take one's complement
+    while (sum >> 16) {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
+    
+    // For a valid checksum, the result should be 0
+    return (~sum) == 0;
+}
 
 //
 // Checksum related
 //
 
 // IPv4 payload length calculation
-uint16_t cord_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr)
+uint16_t cord_calculate_ipv4_payload_length_ntohs(const cord_ipv4_hdr_t *ip_hdr)
 {
     uint16_t total_len = cord_ntohs(ip_hdr->tot_len);
     uint8_t hdr_len = ip_hdr->ihl * 4;
     return total_len - hdr_len;
 }
 
-// IPv6 payload length getter
-uint16_t cord_ipv6_payload_length_ntohs(const cord_ipv6_hdr_t *ip6_hdr)
-{
-    return cord_ntohs(ip6_hdr->payload_len);
-}
-
 // IPv4 checksum calculation
-uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr)
+uint16_t cord_calculate_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr)
 {
     uint32_t sum = 0;
     const uint8_t *ptr = (const uint8_t*)ip_hdr;
@@ -1365,30 +1380,8 @@ uint16_t cord_ipv4_checksum(const cord_ipv4_hdr_t *ip_hdr)
     return ~sum;
 }
 
-// IPv4 checksum validation
-bool cord_ipv4_checksum_valid(const cord_ipv4_hdr_t *ip_hdr)
-{
-    uint32_t sum = 0;
-    const uint8_t *ptr = (const uint8_t*)ip_hdr;
-    uint8_t ihl = ip_hdr->ihl * 4; // Header length in bytes
-    
-    // Sum all 16-bit words including checksum field
-    for (uint8_t i = 0; i < ihl; i += 2) {
-        uint16_t word = (ptr[i] << 8) | ptr[i + 1];
-        sum += word;
-    }
-    
-    // Add carry bits and take one's complement
-    while (sum >> 16) {
-        sum = (sum & 0xFFFF) + (sum >> 16);
-    }
-    
-    // For a valid checksum, the result should be 0
-    return (~sum) == 0;
-}
-
 // TCP checksum calculation for IPv4
-uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
+uint16_t cord_calculate_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
     // Verify this is a TCP packet
     if (ip_hdr->protocol != CORD_IPPROTO_TCP) {
@@ -1400,7 +1393,7 @@ uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
     const cord_tcp_hdr_t *tcp_hdr = (const cord_tcp_hdr_t*)((const uint8_t*)ip_hdr + ip_hdr_len);
     
     uint32_t sum = 0;
-    uint16_t tcp_len = cord_ipv4_payload_length_ntohs(ip_hdr);
+    uint16_t tcp_len = cord_calculate_ipv4_payload_length_ntohs(ip_hdr);
     
     // Pseudo header: src addr + dst addr + zero + protocol + length
     // Source address (network byte order, split into 16-bit words)
@@ -1438,7 +1431,7 @@ uint16_t cord_tcp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 }
 
 // UDP checksum calculation for IPv4
-uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
+uint16_t cord_calculate_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
     // Verify this is a UDP packet
     if (ip_hdr->protocol != CORD_IPPROTO_UDP) {
@@ -1488,7 +1481,7 @@ uint16_t cord_udp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 }
 
 // ICMP checksum calculation for IPv4
-uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
+uint16_t cord_calculate_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 {
     // Verify this is an ICMP packet
     if (ip_hdr->protocol != CORD_IPPROTO_ICMP) {
@@ -1527,7 +1520,7 @@ uint16_t cord_icmp_checksum_ipv4(const cord_ipv4_hdr_t *ip_hdr)
 }
 
 // Ethernet frame CRC32 calculation
-uint32_t cord_ethernet_crc32(const void *buffer, size_t frame_len)
+uint32_t cord_calculate_ethernet_crc32(const void *buffer, size_t frame_len)
 {
     // Standard Ethernet CRC32 polynomial: 0x04C11DB7
     static const uint32_t crc_table[256] = {
